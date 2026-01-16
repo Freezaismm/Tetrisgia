@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nadine Pixel Puzzle: Love Blocks HD 💖</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --p: #ff007f; /* Pink Love */ 
+            --y: #f1c40f; /* Yellow Star */ 
+            --b: #00d4ff; /* Blue Neon */ 
+            --g: #2ecc71; /* Green Life */
+            --grid-bg: #1a1a1a;
+            --border-color: #333;
+        }
+        * { box-sizing: border-box; touch-action: manipulation; image-rendering: pixelated; }
+        body { margin: 0; background: #000; font-family: 'Press Start 2P', cursive; color: #fff; overflow: hidden; height: 100vh; display: flex; align-items: center; justify-content: center; }
+        
+        #game-container { 
+            width: 100%; max-width: 420px; height: 100vh; 
+            position: relative; 
+            background: linear-gradient(180deg, #0f0c29 0%, #302b63 100%); 
+            border: 4px solid var(--border-color); 
+            display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* FRONT PAGE (START SCREEN) */
+        .ovr { 
+            position: absolute; inset: 0; 
+            background: linear-gradient(180deg, #020024 0%, #090979 35%, #00d4ff 100%); 
+            z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            padding: 20px; text-align: center; 
+        }
+        .game-title { 
+            font-size: 14px; color: var(--y); text-shadow: 4px 4px var(--p); line-height: 1.6; 
+            margin-top: -20px; margin-bottom: 35px; letter-spacing: 2px;
+            animation: titleGlow 1.5s infinite alternate;
+        }
+        /* FOTO KOTAK */
+        .photo-slot {
+            width: 160px; height: 160px; background: #222;
+            border: 4px solid var(--w); border-radius: 15px;
+            overflow: hidden; position: relative; margin-bottom: 40px;
+            box-shadow: 0 0 0 4px rgba(255, 0, 127, 0.3), 0 0 30px rgba(255, 0, 127, 0.5);
+            transition: 0.3s;
+        }
+        .photo-slot img { width: 100%; height: 100%; object-fit: cover; }
+        .start-btn {
+            padding: 18px 40px; background: var(--p); border: none; color: #fff;
+            font-family: 'Press Start 2P'; font-size: 10px; border-radius: 12px;
+            cursor: pointer; box-shadow: 0 6px 0 #9d004e, 0 10px 20px rgba(255, 0, 127, 0.4);
+            transition: 0.1s; text-transform: uppercase;
+        }
+        .start-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #9d004e; }
+        @keyframes titleGlow { from { transform: scale(1); opacity: 0.9; } to { transform: scale(1.05); opacity: 1; text-shadow: 0 0 20px var(--p), 4px 4px 0px #000; } }
+
+        /* GAME LAYOUT */
+        #game-area { 
+            flex: 1; 
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-start; 
+            padding-top: 20px; 
+            background: radial-gradient(circle at center, #100a29 0%, #050212 100%);
+        }
+        #game-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            grid-template-rows: repeat(20, 1fr);
+            width: 250px; /* 10 * 25px */
+            height: 500px; /* 20 * 25px */
+            background: var(--grid-bg);
+            border: 2px solid var(--b);
+            box-shadow: 0 0 15px rgba(0,212,255,0.5);
+            position: relative;
+        }
+        .grid-cell {
+            width: 25px; height: 25px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        .block {
+            width: 25px; height: 25px;
+            position: absolute;
+            border: 2px solid rgba(255,255,255,0.3);
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5), 0 0 8px rgba(255,255,255,0.3);
+            background-color: var(--block-color);
+            z-index: 10;
+        }
+        .block.active { animation: blockGlow 0.8s infinite alternate; }
+        @keyframes blockGlow { from { filter: brightness(1); } to { filter: brightness(1.2); } }
+
+        /* SIDE PANEL */
+        #side-panel {
+            width: 100px; height: 500px;
+            margin-left: 15px;
+            display: flex; flex-direction: column; justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            background: var(--grid-bg);
+            border: 2px solid var(--y);
+            box-shadow: 0 0 10px rgba(241,196,15,0.5);
+            position: relative;
+        }
+        .panel-stat { 
+            font-size: 7px; text-align: center; margin-bottom: 10px; 
+            color: var(--w); text-shadow: 1px 1px #000;
+        }
+        #next-block-display {
+            width: 80px; height: 80px;
+            border: 1px dashed rgba(255,255,255,0.3);
+            margin-top: 10px; margin-bottom: 20px;
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            align-items: center; justify-content: center;
+        }
+        .next-block-cell {
+            width: 20px; height: 20px;
+            background-color: var(--block-color);
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: inset 0 0 3px rgba(0,0,0,0.5);
+        }
+
+        /* CONTROLS */
+        #controls {
+            height: 120px; 
+            background: #000; 
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 8px; 
+            padding: 10px;
+            align-items: center;
+            justify-items: center;
+        }
+        .ctrl-btn {
+            width: 60px; height: 40px; 
+            background: rgba(255,255,255,0.08); 
+            border: 2px solid var(--b);
+            color: var(--w); font-family: 'Press Start 2P'; font-size: 8px; 
+            border-radius: 8px; transition: 0.1s;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 0 #005f7c;
+        }
+        .ctrl-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #005f7c; }
+        #rotate-btn { grid-column: 2 / 3; grid-row: 1 / 2; }
+        #left-btn { grid-column: 1 / 2; grid-row: 2 / 3; }
+        #down-btn { grid-column: 2 / 3; grid-row: 2 / 3; }
+        #right-btn { grid-column: 3 / 4; grid-row: 2 / 3; }
+
+        /* GAME OVER / WIN SCREEN */
+        #game-over { display: none; }
+        #win { display: none; flex-direction: column; justify-content: flex-start; padding-top: 50px; }
+        #win-txt { 
+            background: rgba(0,0,0,0.9); border: 2px solid var(--y); padding: 20px; 
+            font-size: 8px; line-height: 2; text-align: left; overflow-y: auto; max-height: 55vh; 
+            margin: 15px 0; border-radius: 10px; 
+        }
+        .restart-btn { 
+            background: var(--p); border: none; padding: 12px; color: #fff; 
+            font-family: 'Press Start 2P'; font-size: 8px; border-radius: 5px; 
+            margin-top: 20px; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="start-screen" class="ovr">
+        <div class="game-title">TETRIS:<br>NOSTALGIA</div>
+        
+        <div class="photo-slot">
+            <img src="https://img.sanishtech.com/u/01a64abbad67fe8cf5f3431e658e877e.png" alt="Nadine">
+        </div>
+
+        <button class="start-btn" onclick="startGame()">LET'S START</button>
+    </div>
+
+    <div id="game-area">
+        <div id="game-grid"></div>
+        <div id="side-panel">
+            <div class="panel-stat">SKOR:<br><span id="score-display">0</span></div>
+            <div class="panel-stat">LEVEL:<br><span id="level-display">1</span></div>
+            <div class="panel-stat">NEXT BLOCK:</div>
+            <div id="next-block-display"></div>
+        </div>
+    </div>
+
+    <div id="controls">
+        <button id="rotate-btn" class="ctrl-btn" onpointerdown="rotateBlock()">PUTAR</button>
+        <button id="left-btn" class="ctrl-btn" onpointerdown="moveBlock(-1)"><</button>
+        <button id="down-btn" class="ctrl-btn" onpointerdown="moveBlock(0, 1)">DOWN</button>
+        <button id="right-btn" class="ctrl-btn" onpointerdown="moveBlock(1)">></button>
+    </div>
+
+    <div id="game-over" class="ovr">
+        <h2 style="color:var(--p); font-size: 14px;">GAME OVER! 💔</h2>
+        <p style="font-size: 9px; margin-top: 20px;">nonono itss okaayy sayanggg</p>
+        <p style="font-size: 9px;">High skor: <span id="final-score">0</span></p>
+        <button class="restart-btn" onclick="location.reload()">COBA LAGI</button>
+    </div>
+
+    <div id="win" class="ovr">
+        <h2 style="color:var(--y); font-size: 14px;">WOWWW CONGRATSSS 💖</h2>
+        <div id="win-txt"></div>
+        <button class="restart-btn" onclick="location.reload()">MAIN LAGI</button>
+    </div>
+</div>
+
+<script>
+    let audioCtx, active = false, score = 0, level = 1, dropInterval;
+    const GRID_WIDTH = 10, GRID_HEIGHT = 20, BLOCK_SIZE = 25;
+    const gameGrid = Array(GRID_HEIGHT).fill(0).map(() => Array(GRID_WIDTH).fill(0));
+    const gameGridElement = document.getElementById('game-grid');
+
+    let currentPiece, nextPiece;
+    let currentPieceX, currentPieceY;
+
+    // Tetromino shapes & colors (HEX codes for retro feel)
+    const TETROMINOS = [
+        // I shape
+        { shape: [[1,1,1,1]], color: '#00d4ff' }, // Blue
+        // J shape
+        { shape: [[0,1,0],[0,1,0],[1,1,0]], color: '#ff75a0' }, // Pink
+        // L shape
+        { shape: [[0,1,0],[0,1,0],[0,1,1]], color: '#f1c40f' }, // Yellow
+        // O shape
+        { shape: [[1,1],[1,1]], color: '#2ecc71' }, // Green
+        // S shape
+        { shape: [[0,1,1],[1,1,0]], color: '#e74c3c' }, // Red
+        // T shape
+        { shape: [[0,1,0],[1,1,1]], color: '#9b59b6' }, // Purple
+        // Z shape
+        { shape: [[1,1,0],[0,1,1]], color: '#f39c12' }  // Orange
+    ];
+
+    function initAudio() {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    // Sound effect function
+    function playSound(freq, duration, type = 'sine', volume = 0.1) {
+        if (!audioCtx) return;
+        let osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+        osc.type = type; osc.frequency.value = freq;
+        gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function startGame() {
+        initAudio();
+        document.getElementById('start-screen').style.display = 'none';
+        active = true;
+        score = 0; level = 1;
+        document.getElementById('score-display').innerText = score;
+        document.getElementById('level-display').innerText = level;
+
+        drawGrid();
+        spawnNewPiece();
+        setDropInterval();
+        
+        // Background music (simple ambient)
+        setInterval(() => { if (active) playSound(150, 0.8, 'triangle', 0.05); }, 2000);
+    }
+
+    function drawGrid() {
+        gameGridElement.innerHTML = '';
+        for (let r = 0; r < GRID_HEIGHT; r++) {
+            for (let c = 0; c < GRID_WIDTH; c++) {
+                let cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                if (gameGrid[r][c] !== 0) {
+                    cell.style.backgroundColor = gameGrid[r][c];
+                    cell.style.border = '2px solid rgba(255,255,255,0.3)';
+                    cell.style.boxShadow = 'inset 0 0 5px rgba(0,0,0,0.5), 0 0 8px rgba(255,255,255,0.3)';
+                }
+                gameGridElement.appendChild(cell);
+            }
+        }
+    }
+
+    function generateRandomPiece() {
+        return TETROMINOS[Math.floor(Math.random() * TETROMINOS.length)];
+    }
+
+    function spawnNewPiece() {
+        currentPiece = nextPiece || generateRandomPiece();
+        nextPiece = generateRandomPiece();
+        currentPieceX = Math.floor(GRID_WIDTH / 2) - Math.floor(currentPiece.shape[0].length / 2);
+        currentPieceY = 0;
+
+        updateNextBlockDisplay();
+
+        if (!isValidMove(currentPieceX, currentPieceY, currentPiece.shape)) {
+            gameOver();
+            return;
+        }
+        drawPiece();
+        playSound(300, 0.1, 'sine'); // Sound for new piece
+    }
+
+    function drawPiece() {
+        // Clear previous piece drawing
+        let existingBlocks = document.querySelectorAll('.block.active');
+        existingBlocks.forEach(block => block.remove());
+
+        currentPiece.shape.forEach((row, r) => {
+            row.forEach((value, c) => {
+                if (value === 1) {
+                    let block = document.createElement('div');
+                    block.className = 'block active';
+                    block.style.setProperty('--block-color', currentPiece.color);
+                    block.style.left = (currentPieceX + c) * BLOCK_SIZE + 'px';
+                    block.style.top = (currentPieceY + r) * BLOCK_SIZE + 'px';
+                    gameGridElement.appendChild(block);
+                }
+            });
+        });
+    }
+
+    function updateNextBlockDisplay() {
+        const display = document.getElementById('next-block-display');
+        display.innerHTML = '';
+        nextPiece.shape.forEach((row, r) => {
+            row.forEach((value, c) => {
+                if (value === 1) {
+                    let cell = document.createElement('div');
+                    cell.className = 'next-block-cell';
+                    cell.style.setProperty('--block-color', nextPiece.color);
+                    cell.style.gridRowStart = r + 1;
+                    cell.style.gridColumnStart = c + 1;
+                    display.appendChild(cell);
+                }
+            });
+        });
+    }
+
+    function isValidMove(newX, newY, newShape) {
+        for (let r = 0; r < newShape.length; r++) {
+            for (let c = 0; c < newShape[r].length; c++) {
+                if (newShape[r][c] === 1) {
+                    let gridX = newX + c;
+                    let gridY = newY + r;
+
+                    if (gridX < 0 || gridX >= GRID_WIDTH || gridY < 0 || gridY >= GRID_HEIGHT) {
+                        return false; // Out of bounds
+                    }
+                    if (gameGrid[gridY][gridX] !== 0) {
+                        return false; // Collision with existing block
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    function lockPiece() {
+        currentPiece.shape.forEach((row, r) => {
+            row.forEach((value, c) => {
+                if (value === 1) {
+                    gameGrid[currentPieceY + r][currentPieceX + c] = currentPiece.color;
+                }
+            });
+        });
+        playSound(200, 0.1, 'square'); // Block land sound
+        drawGrid(); // Redraw grid with locked pieces
+        checkFullLines();
+        spawnNewPiece();
+    }
+
+    function checkFullLines() {
+        let linesCleared = 0;
+        for (let r = GRID_HEIGHT - 1; r >= 0; r--) {
+            if (gameGrid[r].every(cell => cell !== 0)) {
+                linesCleared++;
+                // Remove line and add new empty line at top
+                gameGrid.splice(r, 1);
+                gameGrid.unshift(Array(GRID_WIDTH).fill(0));
+                playSound(800, 0.2, 'sawtooth'); // Line clear sound
+                r++; // Check the new line at the current row index again
+            }
+        }
+
+        if (linesCleared > 0) {
+            score += linesCleared * 100 * level;
+            document.getElementById('score-display').innerText = score;
+            if (score >= 1000) winGame(); // Win condition
+            
+            // Level up logic
+            let newLevel = Math.floor(score / 200) + 1;
+            if (newLevel > level) {
+                level = newLevel;
+                document.getElementById('level-display').innerText = level;
+                setDropInterval();
+                playSound(600, 0.3, 'sine'); // Level up sound
+            }
+        }
+    }
+
+    function setDropInterval() {
+        clearInterval(dropInterval);
+        let dropSpeed = Math.max(100, 1000 - (level * 80)); // Max speed 100ms
+        dropInterval = setInterval(dropPiece, dropSpeed);
+    }
+
+    function dropPiece() {
+        if (isValidMove(currentPieceX, currentPieceY + 1, currentPiece.shape)) {
+            currentPieceY++;
+            drawPiece();
+        } else {
+            lockPiece();
+        }
+    }
+
+    function moveBlock(dx, dy = 0) {
+        if (!active) return;
+        if (isValidMove(currentPieceX + dx, currentPieceY + dy, currentPiece.shape)) {
+            currentPieceX += dx;
+            currentPieceY += dy;
+            drawPiece();
+            playSound(150, 0.05, 'sine'); // Move sound
+            if (dy > 0) score += 1; // Bonus for soft drop
+        } else if (dy > 0) { // If tried to move down and invalid, it's landed
+            lockPiece();
+        }
+    }
+
+    function rotateBlock() {
+        if (!active) return;
+        let rotatedShape = currentPiece.shape[0].map((_, index) => currentPiece.shape.map(row => row[index]).reverse());
+        if (isValidMove(currentPieceX, currentPieceY, rotatedShape)) {
+            currentPiece.shape = rotatedShape;
+            drawPiece();
+            playSound(400, 0.08, 'triangle'); // Rotate sound
+        }
+    }
+
+    // Keyboard controls (optional, for web browser)
+    document.addEventListener('keydown', e => {
+        if (!active) return;
+        if (e.key === 'ArrowLeft') moveBlock(-1);
+        else if (e.key === 'ArrowRight') moveBlock(1);
+        else if (e.key === 'ArrowDown') moveBlock(0, 1);
+        else if (e.key === 'ArrowUp' || e.key === 'x' || e.key === 'X') rotateBlock();
+        else if (e.key === ' ') { // Hard drop
+            e.preventDefault(); // Prevent scrolling
+            while (isValidMove(currentPieceX, currentPieceY + 1, currentPiece.shape)) {
+                currentPieceY++;
+                score += 2; // Bonus for hard drop
+            }
+            drawPiece();
+            lockPiece();
+            playSound(500, 0.1, 'square'); // Hard drop sound
+        }
+    });
+
+    function gameOver() {
+        active = false;
+        clearInterval(dropInterval);
+        playSound(100, 0.8, 'sawtooth', 0.3); // Game Over sound
+        document.getElementById('final-score').innerText = score;
+        document.getElementById('game-over').style.display = 'flex';
+    }
+
+    function winGame() {
+        active = false;
+        clearInterval(dropInterval);
+        
+        // MELODI KEMENANGAN PANJANG (Arpeggio Piano)
+        const victoryMelody = [
+            {f: 261.63, d: 0.4}, {f: 329.63, d: 0.4}, {f: 392.00, d: 0.4}, 
+            {f: 523.25, d: 0.4}, {f: 659.25, d: 0.4}, {f: 783.99, d: 1.0},
+        ];
+        victoryMelody.forEach((note, index) => {
+            setTimeout(() => playSound(note.f, note.d, 'sine', 0.2), index * 300);
+        });
+
+        document.getElementById('win').style.display = 'flex';
+        
+        const txt = `HAI HAII HAII SAYANGGG 💖✨\n\nWIHHH MAIN TETRISS LAGI NIH YAKK WKKWKWKW. yak betull ini game nostalgia yang pernah kamu bikinn lhoo sayangg.. kenapaa fathan bikin game inii?? karenaaa tadii kan gamenya kamu hapusss, jadii biar memorinya masih adaaa fathan buatin dehh, walaupun gamenya gaakan se bagus punya kamuuu hehehee.. \n\nWAWWW TIMAKASII TIMAKASII BANYAKK YAAA BUAT HARI INII.. emm kemarin wkwkwkwk sumpaaa seruu bangett deh pokoonyaaa maahh bisa sehariann main sama kamuu, bersenang senang bersamaa samaaaa.. terusss banyakk hal yang kita laluii dan semuanyaaa happyyy.. senengg bangett dee dari yang foto bersamaa, walaupun sempat berpisahh tapii kita bisa ketemu lagi dehh.. laluu aku merepotkan kamuu malah masakinn akk huhuuu, ak selalu merepotkan kamuu dehhh.. terusss bisa bisanyaa kitaa membeli jajann yang sama persiss untuk satu samaa lainnn wkwkwkwkwk.. sumpaaa ga espekk kitaa bisaa se chemistryy ituu wooiii kerenn bangett dehh pokoknyaaaa.. apa apaa bisa samaaa wkwkwkkwkw.\n\nnahh abiss ituu ak seneng bangett dee bisa ngajarin kamu buat ngajiii, alhamdulillahh sudaa lumayan lancarr dee, lebih baik dari sebelumnyaaa.. terusss kitaaa pergii untuk print bersamaa dehhh wkwkwkwkwk.. seruu bangett bisa keluar sama kamu jalan jalannn.. nahhh terakhirr ituuu akhirnyaa kitaa bisaa muter asjo lagi dehh lihat hewann laaa muter muterr, daannnn akhirnyaa wishlist kuu tahun laluu tercapaiii yaituu potramm withh uuu wkwkwkwkwk.. yes alhamdulillah satu persatu wishlistku tercapaaiii wkwkkwwkkwkw.. maaf yakk kalau tadi lama potramnyaa heheheee.. laluu pas pulanggg kehujanann bareng lagi deh wkwkwkwkw another day another kehujanann.. padahal uda seneng banget kali ini gaada hujann wkwkwk tapi yaa tetep ajaa sii kita di temani hujan lagiii.. yang paling ga espeknyaa tuu kitaa ke pantryy wkwkwkkw dengan tidak sengajaaaa.. seruu bangett deh pokoknyaa hari inii tuuu.. ak sangat sukaaaa\n\n yaapp ak mintaa maaf yak kalau aku ninggalin kamu lagii tadi malemmm hehehee, aku beneran ketidurann taukk hpku masih di deket tangan tadii bener bener se ngantuk ituuu.. aku jadi ketularan kamu kayaknyaaa wkwkwkwkw dan itu seruu ak bisa bikin game jam tiga pagi lagiii wkwkkwkw\n\nyasudaa lah yaaa inilah ceritaa harii iniiii.. selamat beristirahat dan mungkin jugaa selamat beraktivitass kembalii yaa sayanggg.. semogaa hari ini di berikan kelancarann yaaa aamiin aamiin.. semogaa besokk besokk wishlistkuu yang lainn tercapaii yaituu jogging with uuu wkwkwkwkwkw pasti bakal seru bangey dehh ituu.. yasudaaa deeee fathann bobo lagi duluu yaaakkk paipai paipaiii sayanggggg.. thanks a lot for todayy yaaaaa.. je t'aimeeee bieennnn sayangkuu cintakuuu.. esaa sayang nadinee.. nadine sayang ezaaaa 🩵💙🩵💙🩵💙🩵💙`;
+        
+        let i = 0;
+        document.getElementById('win-txt').innerHTML = ""; // Clear existing text
+        function type() {
+            if(i < txt.length) {
+                document.getElementById('win-txt').innerHTML += txt[i] === '\n' ? '<br>' : txt[i];
+                if(i % 3 === 0) playSound(1000, 0.05, 'sine', 0.02); // Typewriter sound
+                i++; setTimeout(type, 50);
+            }
+        }
+        setTimeout(type, 2000); // Start typing after melody
+    }
+</script>
+</body>
+</html>
